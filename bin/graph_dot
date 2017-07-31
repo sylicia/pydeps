@@ -62,14 +62,14 @@ def generate_dot_graph(project):
             dot_graph['links'] += links['external_parent']
             for out_node in links['external_parent']:
                 out_id = out_node['child']
-                out_comp = pydepth.COMPONENTS[out_id]
+                out_comp = pydeps.COMPONENTS[out_id]
                 dot_graph['clusters'][out_comp.appli.project.name] = \
                     get_project_cluster(out_comp.appli.project, out_comp)
 
             dot_graph['links'] += links['external_child']
             for out_node in links['external_child']:
                 out_id = out_node['parent']
-                out_comp = pydepth.COMPONENTS[out_id]
+                out_comp = pydeps.COMPONENTS[out_id]
                 dot_graph['clusters'][out_comp.appli.project.name] = \
                     get_project_cluster(out_comp.appli.project, out_comp)
 
@@ -273,11 +273,11 @@ if __name__ == '__main__':
         raise ArgumentError('Only "yes" or "no" supported for --macro')
 
     # Load projects configuration
-    pydepth.load_projects()
+    pydeps.load_projects()
 
     # Check if project exists
-    if project_target not in pydepth.PROJECTS:
+    if project_target not in pydeps.PROJECTS:
         raise ArgumentError("Project {0} not found".format(project_target))
 
     # Display dependencies
-    generate_dot_graph(pydepth.PROJECTS[project_target])
+    generate_dot_graph(pydeps.PROJECTS[project_target])
