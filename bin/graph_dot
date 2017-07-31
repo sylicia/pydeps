@@ -1,0 +1,283 @@
+#!/usr/bin/env python
+"""graph_dot
+
+\033[1mUsage:\033[0m
+    graph_dot -h | --help
+    graph_dot (-t <project> | --target <project>) [--detailled <value>]
+
+\033[1mOptions:\033[0m
+    -h, --help                        Show this screen.
+    -t <project>, --target <project>  Project you want to focus on
+    --detailled <value>               Generate detailed graph with components
+                                         Values: 'yes' or 'no'
+                                         [Default: yes]
+"""
+
+
+from pprint import pprint
+import types
+import logging
+import pydeps
+
+# files functions
+from os import path, sep
+from glob import glob
+
+from pydeps.exceptions import ArgumentError
+
+from jinja2 import Environment, FileSystemLoader
+
+try:
+    from yaml import load, CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import load, Loader, Dumper
+
+logger = logging.getLogger(__name__)
+
+#
+#   Functions
+#
+def generate_dot_graph(project):
+    """Gerenate a dot graph focused on a specific project.
+
+    The graph will show component of the project and all external
+    dependencies.
+
+    :param project: list of configuration path
+    :type project: Project
+    """
+    dot_graph = {
+        'clusters': {},
+        'nodes': {},
+        'links': []
+    }
+    dot_graph['clusters'][project.name] = get_project_cluster(project)
+
+    for appli, appli_info in project.applis.iteritems():
+        for comp, comp_info in appli_info.components.iteritems():
+            logger.debug(project.name, appli_info.name, comp_info.name)
+            links = get_component_links(comp_info)
+            dot_graph['clusters'][project.name]['links'] += links['internal_parent']
+
+            dot_graph['links'] += links['external_parent']
+            for out_node in links['external_parent']:
+                out_id = out_node['child']
+                out_comp = pydepth.COMPONENTS[out_id]
+                dot_graph['clusters'][out_comp.appli.project.name] = \
+                    get_project_cluster(out_comp.appli.project, out_comp)
+
+            dot_graph['links'] += links['external_child']
+            for out_node in links['external_child']:
+                out_id = out_node['parent']
+                out_comp = pydepth.COMPONENTS[out_id]
+                dot_graph['clusters'][out_comp.appli.project.name] = \
+                    get_project_cluster(out_comp.appli.project, out_comp)
+
+    logger.debug(dot_graph)
+
+    create_dot_file('./bin/graph_dependencies_detailed.dot.j2', dot_graph)
+
+
+def create_dot_file(dot_template, dot_variables):
+    """ Create dot file from a template
+
+    :param dot_template: Path of the dot template in j2 format
+    :param dot_variables: Dot objet definitions
+    :type dot_template: str
+    :type dot_variables: dict
+    """
+    dot_file = dot_template.replace('.j2', '')
+    with open(dot_file, 'w') as dot:
+        dirname = path.dirname(dot_template)
+        basename = path.basename(dot_template)
+        templateLoader = FileSystemLoader(searchpath=dirname)
+        templateEnv = Environment(loader=templateLoader)
+        dot_content = templateEnv.get_template(basename).render(dot_variables)
+        dot.write(dot_content)
+        dot.close()
+
+
+def get_project_cluster(project, component=None):
+    """ Get a dot cluster definition for a project
+
+    It creates the cluster structure with all applications and components by
+    default but you can also specify a component in parameters.
+
+    :param project: Project to look for
+    :param component: Filter on a specified component
+    :type project: Project
+    :type component: Component
+
+    :return: Cluster definition
+    :rtype: dict
+
+    Format of the cluster returned:
+    {
+        'clusters': Application as clusters (dict)
+        'nodes': Applications as nodes (dict)
+        'links': Links between components (list),
+        'display': Additional information like colors (dict)
+    }
+    """
+    cluster = {
+        'clusters': {},
+        'nodes': {},
+        'links': [],
+        'display': project.dot['custom']
+    }
+
+    if component:
+        appli = project.get_application(component.appli.name)
+        cluster['clusters'][appli.id] = get_appli_cluster(appli, component)
+    else:
+        for appli_name, appli in project.applis.iteritems():
+            cluster['clusters'][appli.id] = get_appli_cluster(appli)
+
+        for parent_id, child_id in project.dot['invis_links'].iteritems():
+            cluster['links'].append({'parent': parent_id,
+                                     'child': child_id,
+                                     'display': {'style': 'invis'}
+                                    })
+    return cluster
+
+def get_appli_cluster(appli, component=None):
+    """ Get a dot cluster definition for an application
+
+    It creates the cluster structure with all components by
+    default but you can also specify a component in parameters.
+
+    :param appli: Application to look for
+    :param component: Filter on a specified component
+    :type appli: Application
+    :type component: Component
+
+    :return: Cluster definition
+    :rtype: dict
+
+    Format of the cluster returned:
+    {
+        'nodes': Components (dict)
+        'label': The application name
+        'display': Additional information like colors (dict)
+    }
+    """
+    cluster = {
+        'nodes': {},
+        'label': appli.name,
+        'display': appli.dot['custom']
+    }
+
+    if component:
+        cluster['nodes'][component.id] = get_component_node(component)
+    else:
+        for component_name, component in appli.components.iteritems():
+            cluster['nodes'][component.id] = get_component_node(component)
+    return cluster
+
+
+def get_component_node(component):
+    """ Get a dot node definition for a component
+
+    :param component: Component to look for
+    :type component: Component
+
+    :return: Cluster definition
+    :rtype: dict
+
+    Format of the node returned:
+    {
+        'id': The uniq indentifier in the graph (str)
+        'label': The component name (str)
+        'shape': Can be 'ellipse', 'cylinder' or 'tab' ('ellipse' by default)
+        'style': 'filled'
+    }
+    """
+    node = {
+        'id': component.id,
+        'label': component.name,
+        'shape': 'ellipse',
+        'style': 'filled'
+    }
+    if component.name in ['DB', 'ES', 'MONGODB']:
+        node['shape'] = 'cylinder'
+    elif component.name in ['RABBITIN', 'RABBITOUT']:
+        node['shape'] = 'tab'
+    return node
+
+
+def get_component_links(compo):
+    """Manage the dependencies inside and outside the project
+    :param compo: Component to look for
+    :type compo: Component
+
+    :return: Cluster definition
+    :rtype: dict
+
+    Format of the cluster returned:
+    {
+        'internal_parent': Links with the components it depends on
+                           inside the projet (list)
+        'external_parent': Links with the components it depends on
+                           outide the projet (list)
+        'external_child':  Links with the components depends on it
+                           outide the projet (list)
+    }
+
+    """
+    links = {
+        'internal_parent': [],
+        'external_parent': [],
+        'external_child': [],
+
+    }
+
+    for parent in compo.parents:
+        if parent.appli.project.name == compo.appli.project.name:
+            links['internal_parent'].append({
+                'child': compo.id,
+                'parent': parent.id,
+                'display': compo.appli.dot['custom']
+            })
+
+        else:
+            links['external_parent'].append({
+                'child': parent.id,
+                'parent': compo.id,
+                'display': compo.appli.dot['custom']
+            })
+    for child in compo.childs:
+        if child.appli.project.name != compo.appli.project.name:
+            links['external_child'].append({
+                'child': compo.id,
+                'parent': child.id,
+                'display': child.appli.dot['custom']
+            })
+    return links
+
+#
+#   Main
+#
+
+if __name__ == '__main__':
+    # Get target project
+    from docopt import docopt
+
+    arguments = docopt(__doc__)
+    project_target = arguments['--target']
+
+    if arguments['--detailled'] == 'yes':
+        is_detailled = True
+    elif arguments['--detailled'] == 'no':
+        is_detailled = False
+    else:
+        raise ArgumentError('Only "yes" or "no" supported for --macro')
+
+    # Load projects configuration
+    pydepth.load_projects()
+
+    # Check if project exists
+    if project_target not in pydepth.PROJECTS:
+        raise ArgumentError("Project {0} not found".format(project_target))
+
+    # Display dependencies
+    generate_dot_graph(pydepth.PROJECTS[project_target])
