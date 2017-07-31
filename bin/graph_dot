@@ -51,30 +51,36 @@ def generate_dot_graph(project):
         'nodes': {},
         'links': []
     }
+    # create dot cluster for the project
     dot_graph['clusters'][project.name] = get_project_cluster(project)
-
+    external_components = {}
     for appli, appli_info in project.applis.iteritems():
-        for comp, comp_info in appli_info.components.iteritems():
-            logger.debug(project.name, appli_info.name, comp_info.name)
-            links = get_component_links(comp_info)
-            dot_graph['clusters'][project.name]['links'] += links['internal_parent']
+        for compo, compo_info in appli_info.components.iteritems():
+            logger.debug(project.name, appli_info.name, compo_info.name)
+            links = get_component_links(compo_info)
+            dot_graph['clusters'][project.name]['links'] += links['internal']
 
-            dot_graph['links'] += links['external_parent']
-            for out_node in links['external_parent']:
-                out_id = out_node['child']
-                out_comp = pydeps.COMPONENTS[out_id]
-                dot_graph['clusters'][out_comp.appli.project.name] = \
-                    get_project_cluster(out_comp.appli.project, out_comp)
-
-            dot_graph['links'] += links['external_child']
-            for out_node in links['external_child']:
-                out_id = out_node['parent']
-                out_comp = pydeps.COMPONENTS[out_id]
-                dot_graph['clusters'][out_comp.appli.project.name] = \
-                    get_project_cluster(out_comp.appli.project, out_comp)
-
+            dot_graph['links'] += links['external']
+            for ext_compo in links['external_components']:
+                if ext_compo.appli.project.name not in external_components:
+                    external_components[ext_compo.appli.project.name] = []
+                external_components[ext_compo.appli.project.name].append(
+                                                                    ext_compo
+                                                                  )
+    # add hidden links from project configuration
+    for parent_id, child_id in project.dot['invis_links'].items():
+        dot_graph['links'].append({'parent': parent_id,
+                                 'child': child_id,
+                                 'display': {'style': 'invis'}
+                                })
+    # create dot cluster for other projects
+    for project_name, compo_list in external_components.items():
+        project = pydeps.PROJECTS[project_name]
+        dot_graph['clusters'][project_name] = get_project_cluster(
+                                                                    project,
+                                                                    compo_list
+                                                                 )
     logger.debug(dot_graph)
-
     create_dot_file('./bin/graph_dependencies_detailed.dot.j2', dot_graph)
 
 
@@ -97,16 +103,16 @@ def create_dot_file(dot_template, dot_variables):
         dot.close()
 
 
-def get_project_cluster(project, component=None):
+def get_project_cluster(project, components=[]):
     """ Get a dot cluster definition for a project
 
     It creates the cluster structure with all applications and components by
     default but you can also specify a component in parameters.
 
     :param project: Project to look for
-    :param component: Filter on a specified component
+    :param components: Filter on a list specified components
     :type project: Project
-    :type component: Component
+    :type components: list
 
     :return: Cluster definition
     :rtype: dict
@@ -125,11 +131,7 @@ def get_project_cluster(project, component=None):
         'links': [],
         'display': project.dot['custom']
     }
-
-    if component:
-        appli = project.get_application(component.appli.name)
-        cluster['clusters'][appli.id] = get_appli_cluster(appli, component)
-    else:
+    if len(components) == 0:
         for appli_name, appli in project.applis.iteritems():
             cluster['clusters'][appli.id] = get_appli_cluster(appli)
 
@@ -138,16 +140,27 @@ def get_project_cluster(project, component=None):
                                      'child': child_id,
                                      'display': {'style': 'invis'}
                                     })
+    else:
+        external_components = {}
+        for compo in components:
+            if compo.appli.name not in external_components.items():
+                external_components[compo.appli.name] = []
+            external_components[compo.appli.name].append(compo)
+        for appli_name, compo_list in external_components.items():
+            cluster['clusters'][appli_name] = get_appli_cluster(
+                                                project.applis[appli_name],
+                                                compo_list
+                                            )
     return cluster
 
-def get_appli_cluster(appli, component=None):
+def get_appli_cluster(appli, components=[]):
     """ Get a dot cluster definition for an application
 
     It creates the cluster structure with all components by
     default but you can also specify a component in parameters.
 
     :param appli: Application to look for
-    :param component: Filter on a specified component
+    :param components: Filter on a list specified components
     :type appli: Application
     :type component: Component
 
@@ -167,11 +180,12 @@ def get_appli_cluster(appli, component=None):
         'display': appli.dot['custom']
     }
 
-    if component:
-        cluster['nodes'][component.id] = get_component_node(component)
+    if len(components) == 0:
+        for compo_name, compo in appli.components.iteritems():
+            cluster['nodes'][compo.id] = get_component_node(compo)
     else:
-        for component_name, component in appli.components.iteritems():
-            cluster['nodes'][component.id] = get_component_node(component)
+        for compo in components:
+            cluster['nodes'][compo.id] = get_component_node(compo)
     return cluster
 
 
@@ -210,48 +224,46 @@ def get_component_links(compo):
     :param compo: Component to look for
     :type compo: Component
 
-    :return: Cluster definition
+    :return: links definition
     :rtype: dict
 
-    Format of the cluster returned:
+    Format of the links returned:
     {
-        'internal_parent': Links with the components it depends on
-                           inside the projet (list)
-        'external_parent': Links with the components it depends on
-                           outide the projet (list)
-        'external_child':  Links with the components depends on it
-                           outide the projet (list)
+        'internal': Links with components inside the projet (list)
+        'external': Links with components outside the projet (list)
+        'external_components': Components of other projects that need
+                               to be defined (list)
     }
 
     """
     links = {
-        'internal_parent': [],
-        'external_parent': [],
-        'external_child': [],
-
+        'internal': [],
+        'external': [],
+        'external_components': []
     }
 
     for parent in compo.parents:
         if parent.appli.project.name == compo.appli.project.name:
-            links['internal_parent'].append({
+            links['internal'].append({
                 'child': compo.id,
                 'parent': parent.id,
                 'display': compo.appli.dot['custom']
             })
-
         else:
-            links['external_parent'].append({
+            links['external'].append({
                 'child': parent.id,
                 'parent': compo.id,
                 'display': compo.appli.dot['custom']
             })
+            links['external_components'].append(parent)
     for child in compo.childs:
         if child.appli.project.name != compo.appli.project.name:
-            links['external_child'].append({
+            links['external'].append({
                 'child': compo.id,
                 'parent': child.id,
                 'display': child.appli.dot['custom']
             })
+            links['external_components'].append(child)
     return links
 
 #
