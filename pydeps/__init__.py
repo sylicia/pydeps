@@ -23,6 +23,7 @@ import logging
 
 # files functions
 import os
+from pprint import pprint
 
 try:
     from yaml import load, CLoader as Loader, CDumper as Dumper
@@ -46,27 +47,17 @@ class Project(object):
     :param str name: The name of the project
     :param dict info: Information that describes the project
     """
-    def __init__(self, name, info):
+    def __init__(self, name, info={}):
         """Init method"""
         self.id = name
         self.name = name
         self.applis = {}
+        self.domain = info.get('domain', '')
+        self.team = info.get('team', '')
         self.dot = {
-            'invis_links': {},
-            'custom': {}
+            'custom': info.get('graph_customization',{}),
+            'invis_links': {}
         }
-        self.graph_customization = {}
-        self.graph_hidden_links = {}
-
-        try:
-            self.domain = info['domain']
-            self.team = info['team']
-        except KeyError:
-            raise KeyError("'domain' and 'team' required to configure"
-                           " {} (defaults.yml)".format(name))
-
-        if 'graph_customization' in info:
-            self.dot['custom'] = info['graph_customization']
 
         if 'graph_hidden_links' in info:
             for parent, childs in info['graph_hidden_links'].iteritems():
@@ -293,12 +284,15 @@ def load_projects(projects_path):
     for project_name in project_names:
         project_path = generate_path([projects_path, project_name])
         appli_files = os.listdir(project_path)
-        file_id = appli_files.index('defaults.yml')
-        default_file = appli_files.pop(file_id)
+        try:
+            file_id = appli_files.index('defaults.yml')
+            default_file = appli_files.pop(file_id)
 
-        default_path = generate_path([project_path, default_file])
-        project_struct = load_yaml_file(default_path)
-        PROJECTS[project_name] = Project(project_name, project_struct)
+            default_path = generate_path([project_path, default_file])
+            project_struct = load_yaml_file(default_path)
+            PROJECTS[project_name] = Project(project_name, project_struct)
+        except ValueError:
+            PROJECTS[project_name] = Project(project_name)
 
         # setup applications
         for appli_file in appli_files:
