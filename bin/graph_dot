@@ -23,11 +23,15 @@
 
 Usage:
     graph_dot -h | --help
-    graph_dot (-t <project> | --target <project>)
+    graph_dot -t <project> -p <path> [-o <graph_path>]
+
 
 Options:
-    -h, --help                        Show this screen.
-    -t <project>, --target <project>  Project you want to focus on
+    -h, --help                                  Show this screen.
+    -t <project>, --target <project>            Project you want to focus on
+    -p <projects_path>, --path <projects_path>  Path to projects YAML files
+    -o <graph_path>, --output <graph_path>      Output in specified file
+                                                [Default: stdout]
 """
 
 
@@ -44,13 +48,14 @@ logger = logging.getLogger(__name__)
 #
 #   Functions
 #
-def generate_dot_graph(project):
+def generate_dot_graph(project, dot_path):
     """Generate a dot graph focused on a specific project
 
     The graph will show component of the project and all external
     dependencies.
 
-    :param Project project: list of configuration path
+    :param Project project: Project to focus on
+    :param str dot_path: Path to write graph description
     """
     dot_graph = {
         'clusters': {},
@@ -87,24 +92,32 @@ def generate_dot_graph(project):
                                                                     compo_list
                                                                  )
     logger.debug(dot_graph)
-    create_dot_file('./bin/graph_dependencies_detailed.dot.j2', dot_graph)
+    create_dot_file(dot_path, dot_graph)
 
 
-def create_dot_file(dot_template, dot_variables):
+def create_dot_file(dot_path, dot_variables):
     """ Create dot file from a template
 
-    :param str dot_template: Path of the dot template in j2 format
-    :param dict dot_variables: Dot objet definitions
+    :param str dot_path: Path of the dot file
+    :param dict dot_variables: Dot object definitions
     """
-    dot_file = dot_template.replace('.j2', '')
-    with open(dot_file, 'w') as dot:
-        dir_name = os.path.dirname(dot_template)
-        basename = os.path.basename(dot_template)
-        template_loader = FileSystemLoader(searchpath=dir_name)
-        template_env = Environment(loader=template_loader)
-        dot_content = template_env.get_template(basename).render(dot_variables)
-        dot.write(dot_content)
-        dot.close()
+    current_path = os.path.dirname(os.path.realpath(__file__))
+    dot_template = pydeps.generate_path([
+                                          current_path,
+                                          'dependencies.dot.j2'
+                                        ])
+    dir_name = os.path.dirname(dot_template)
+    basename = os.path.basename(dot_template)
+    template_loader = FileSystemLoader(searchpath=dir_name)
+    template_env = Environment(loader=template_loader)
+    dot_content = template_env.get_template(basename).render(dot_variables)
+
+    if dot_path == 'stdout':
+        print(dot_content)
+    else:
+        with open(dot_path, 'w') as dot:
+            dot.write(dot_content)
+            dot.close()
 
 
 def get_project_cluster(project, components=()):
@@ -270,18 +283,20 @@ def get_component_links(compo):
 #
 
 if __name__ == '__main__':
-    # Get target project
+    # Init variables from arguments
     from docopt import docopt
 
     arguments = docopt(__doc__)
     project_target = arguments['--target']
+    projects_path = arguments['--path']
+    dot_path = arguments['--output']
 
     # Load projects configuration
-    pydeps.load_projects()
+    pydeps.load_projects(projects_path)
 
     # Check if project exists
     if project_target not in pydeps.PROJECTS:
         raise ArgumentError("Project {0} not found".format(project_target))
 
     # Display dependencies
-    generate_dot_graph(pydeps.PROJECTS[project_target])
+    generate_dot_graph(pydeps.PROJECTS[project_target], dot_path)

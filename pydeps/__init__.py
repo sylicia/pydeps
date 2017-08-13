@@ -22,8 +22,7 @@ from exceptions import DependenceError, ArgumentError
 import logging
 
 # files functions
-from os import path, sep
-from glob import glob
+import os
 
 try:
     from yaml import load, CLoader as Loader, CDumper as Dumper
@@ -256,7 +255,7 @@ def generate_path(path_list):
     :return: path generated with the os separator
     :rtype: str
     """
-    return sep.join(path_list)
+    return os.sep.join(path_list)
 
 
 def load_yaml_file(yaml_file):
@@ -274,33 +273,36 @@ def load_yaml_file(yaml_file):
     return yaml_load
 
 
-def load_projects():
+def load_projects(projects_path):
     """Load all project YAML files
+
+    It modifies global dict PROJECTS
+
+    :param str projects_path: YAML files directory
     """
 
     global PROJECTS
 
     # set projects location path
-    current_path = path.dirname(path.realpath(__file__))
-    project_glob = generate_path([current_path, '..', 'projects', '*'])
-    project_dirs = glob(project_glob)
+    project_names = os.listdir(projects_path)
 
-    if project_dirs.__len__() == 0:
+    if len(project_names) == 0:
         raise ArgumentError("No project directory found")
 
     # setup projects
-    for project_dir in project_dirs:
-        project_name = path.basename(project_dir)
-        appli_glob = generate_path([project_dir, '*.yml'])
-        appli_files = glob(appli_glob)
-        file_id = appli_files.index(generate_path([project_dir,
-                                                  'defaults.yml']))
-        project_file = appli_files.pop(file_id)
-        project_struct = load_yaml_file(project_file)
+    for project_name in project_names:
+        project_path = generate_path([projects_path, project_name])
+        appli_files = os.listdir(project_path)
+        file_id = appli_files.index('defaults.yml')
+        default_file = appli_files.pop(file_id)
+
+        default_path = generate_path([project_path, default_file])
+        project_struct = load_yaml_file(default_path)
         PROJECTS[project_name] = Project(project_name, project_struct)
 
         # setup applications
         for appli_file in appli_files:
-            appli_info = load_yaml_file(appli_file)
-            appli_name = path.basename(appli_file.replace('.yml', ''))
+            appli_path = generate_path([project_path, appli_file])
+            appli_info = load_yaml_file(appli_path)
+            appli_name = appli_file.replace('.yml', '')
             PROJECTS[project_name].add_application(appli_name, appli_info)
