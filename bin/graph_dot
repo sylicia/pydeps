@@ -254,7 +254,11 @@ def get_component_links(compo):
         'external_components': []
     }
 
-    for parent in compo.parents:
+    for parent in set(compo.parents):
+        # do not display self dependencies
+        if parent.id == compo.id:
+            continue
+
         if parent.appli.project.name == compo.appli.project.name:
             links['internal'].append({
                 'child': compo.id,
@@ -268,7 +272,7 @@ def get_component_links(compo):
                 'display': compo.appli.dot['custom']
             })
             links['external_components'].append(parent)
-    for child in compo.childs:
+    for child in set(compo.childs):
         if child.appli.project.name != compo.appli.project.name:
             links['external'].append({
                 'child': compo.id,

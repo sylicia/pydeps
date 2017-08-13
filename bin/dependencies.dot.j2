@@ -30,14 +30,12 @@ digraph G {
         }
 {%- endfor %}
 {%- for link in marque_info.links %}
-{%- if link.child != link.parent%}
         {{ link.child }} -> {{ link.parent }} [
             dir=forward
 {%- for key, value in link.display.iteritems() %}
         {{ key }}="{{ value }}"
 {%- endfor %}
         ]
-{%- endif %}
 {%- endfor %}
     }
 {% endfor %}
