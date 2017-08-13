@@ -38,7 +38,6 @@ Options:
 import logging
 import pydeps
 import os
-from pydeps.exceptions import ArgumentError
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -50,14 +49,14 @@ logging.basicConfig(format='[%(levelname)s] - %(message)s')
 #
 #   Functions
 #
-def generate_dot_graph(project, dot_path):
+def generate_dot_graph(project, graph_path):
     """Generate a dot graph focused on a specific project
 
     The graph will show component of the project and all external
     dependencies.
 
     :param Project project: Project to focus on
-    :param str dot_path: Path to write graph description
+    :param str graph_path: Path to write graph description
     """
     dot_graph = {
         'clusters': {},
@@ -94,13 +93,13 @@ def generate_dot_graph(project, dot_path):
                                                                     compo_list
                                                                  )
     logger.debug(dot_graph)
-    create_dot_file(dot_path, dot_graph)
+    create_dot_file(graph_path, dot_graph)
 
 
-def create_dot_file(dot_path, dot_variables):
+def create_dot_file(graph_path, dot_variables):
     """ Create dot file from a template
 
-    :param str dot_path: Path of the dot file
+    :param str graph_path: Path of the dot file
     :param dict dot_variables: Dot object definitions
     """
     current_path = os.path.dirname(os.path.realpath(__file__))
@@ -117,7 +116,7 @@ def create_dot_file(dot_path, dot_variables):
     if dot_path == 'stdout':
         print(dot_content)
     else:
-        with open(dot_path, 'w') as dot:
+        with open(graph_path, 'w') as dot:
             dot.write(dot_content)
             dot.close()
 

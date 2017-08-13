@@ -46,30 +46,34 @@ class Project(object):
     :param str name: The name of the project
     :param dict info: Information that describes the project
     """
-    def __init__(self, name, info={}):
+    def __init__(self, name, info=None):
         """Init method"""
         self.id = name
         self.name = name
         self.applis = {}
-        self.domain = info.get('domain', '')
-        self.team = info.get('team', '')
+        self.domain = ''
+        self.team = ''
         self.dot = {
-            'custom': info.get('graph_customization',{}),
+            'custom': {},
             'invis_links': {}
         }
+        self.user = {
+            'owner': 'www-data',
+            'group': 'www-data'
+        }
 
-        if 'graph_hidden_links' in info:
-            for parent, childs in info['graph_hidden_links'].iteritems():
-                for child in childs:
-                    self.dot['invis_links'][parent] = child
+        if info is not None:
+            self.domain = info.get('domain', '')
+            self.team = info.get('team', '')
+            self.dot['custom'] = info.get('graph_customization', {})
 
-        if 'user' in info:
-            self.user = info['user']
-        else:
-            self.user = {
-                'owner': 'www-data',
-                'group': 'www-data'
-            }
+            if 'graph_hidden_links' in info:
+                for parent, childs in info['graph_hidden_links'].iteritems():
+                    for child in childs:
+                        self.dot['invis_links'][parent] = child
+
+            if 'user' in info:
+                self.user = info['user']
 
     def __repr__(self):
         return self.id
