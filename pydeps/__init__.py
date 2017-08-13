@@ -305,5 +305,5 @@ def load_projects(projects_path):
                 logger.info('ignore {}'.format(appli_path))
                 continue
             appli_info = load_yaml_file(appli_path)
-            appli_name = appli_file.replace('.yml', '')
+            appli_name = appli_file.split('.')[0]
             PROJECTS[project_name].add_application(appli_name, appli_info)
