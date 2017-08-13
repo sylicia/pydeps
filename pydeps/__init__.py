@@ -18,12 +18,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from exceptions import DependenceError, ArgumentError
+from exceptions import DependencyError, ArgumentError
 import logging
 
 # files functions
 import os
-from pprint import pprint
 
 try:
     from yaml import load, CLoader as Loader, CDumper as Dumper
@@ -194,7 +193,7 @@ class Component(object):
                                                 dep['component'],
                                                 dep['soft']))
             except KeyError as e:
-                raise DependenceError(("Missing key {} to define dependencies "
+                raise DependencyError(("Missing key {} to define dependencies "
                                        "for component {}").format(e, self.id)
                                       )
 
@@ -221,7 +220,11 @@ class Component(object):
         comp_list = []
         for comp in self._parent_components:
             comp_id = "{}_{}_{}".format(comp[0], comp[1], comp[2])
-            comp_list.append(COMPONENTS[comp_id])
+            try:
+                comp_list.append(COMPONENTS[comp_id])
+            except KeyError:
+                raise DependencyError(('{} not found to resolve '
+                                      '{} dependency').format(comp_id, self.id))
         return comp_list
 
     @property
@@ -297,6 +300,10 @@ def load_projects(projects_path):
         # setup applications
         for appli_file in appli_files:
             appli_path = generate_path([project_path, appli_file])
+            if not appli_file.endswith('.yml')\
+                    and not appli_file.endswith('.yaml'):
+                logger.info('ignore {}'.format(appli_path))
+                continue
             appli_info = load_yaml_file(appli_path)
             appli_name = appli_file.replace('.yml', '')
             PROJECTS[project_name].add_application(appli_name, appli_info)

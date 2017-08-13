@@ -19,8 +19,8 @@
 #    along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-class DependenceError(ValueError):
-    """Dependence not satisfied
+class DependencyError(ValueError):
+    """Dependency not satisfied
     """
 
 
