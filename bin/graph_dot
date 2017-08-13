@@ -45,13 +45,12 @@ logger = logging.getLogger(__name__)
 #   Functions
 #
 def generate_dot_graph(project):
-    """Gerenate a dot graph focused on a specific project.
+    """Generate a dot graph focused on a specific project
 
     The graph will show component of the project and all external
     dependencies.
 
-    :param project: list of configuration path
-    :type project: Project
+    :param Project project: list of configuration path
     """
     dot_graph = {
         'clusters': {},
@@ -94,10 +93,8 @@ def generate_dot_graph(project):
 def create_dot_file(dot_template, dot_variables):
     """ Create dot file from a template
 
-    :param dot_template: Path of the dot template in j2 format
-    :param dot_variables: Dot objet definitions
-    :type dot_template: str
-    :type dot_variables: dict
+    :param str dot_template: Path of the dot template in j2 format
+    :param dict dot_variables: Dot objet definitions
     """
     dot_file = dot_template.replace('.j2', '')
     with open(dot_file, 'w') as dot:
@@ -196,8 +193,7 @@ def get_appli_cluster(appli, components=()):
 def get_component_node(component):
     """ Get a dot node definition for a component
 
-    :param component: Component to look for
-    :type component: Component
+    :param Component component: Component to look for
 
     :return: Cluster definition
     :rtype: dict
@@ -225,8 +221,7 @@ def get_component_node(component):
 
 def get_component_links(compo):
     """Manage the dependencies inside and outside the project
-    :param compo: Component to look for
-    :type compo: Component
+    :param Component compo: Component to look for
 
     :return: links definition
     :rtype: dict

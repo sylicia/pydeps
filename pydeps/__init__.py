@@ -42,10 +42,10 @@ logger = logging.getLogger(__name__)
 #   Classes
 #
 class Project(object):
-    """Initialize a project.
+    """Initialize a project
 
-        :param str name: The name of the project
-        :param dict info: Information that describes the project
+    :param str name: The name of the project
+    :param dict info: Information that describes the project
     """
     def __init__(self, name, info):
         """Init method"""
@@ -106,14 +106,11 @@ class Project(object):
 
 
 class Application(object):
-    """Initialize an application.
+    """Initialize an application
 
-        :param name: The name of the project
-        :param info: Information that describes the application
-        :param project: Reference tlo the parent project
-        :type name: str
-        :type info: dict
-        :type project: Project
+    :param str name: The name of the project
+    :param dict info: Information that describes the application
+    :param Project project: Reference tlo the parent project
     """
     def __init__(self, name, info, project):
         """Init method"""
@@ -143,11 +140,8 @@ class Application(object):
     def add_component(self, component_name, component_info):
         """Add a component in the application
 
-        :param component_name: The name of the component
-        :param component_info: Some information to create the component
-
-        :type component_name: str
-        :type component_info: dict
+        :param str component_name: The name of the component
+        :param dict component_info: Some information to create the component
         """
         component = Component(component_name,
                               component_info,
@@ -158,8 +152,8 @@ class Application(object):
     def get_component(self, component_target):
         """Look for a specific component
 
-        :param component_target: Component name to look for
-        :type component_target: str
+        :param str component_target: Component name to look for
+
         :return: The component object
         :rtype: Component
         """
@@ -169,7 +163,7 @@ class Application(object):
 
 
 class Component(object):
-    """Initialize a component.
+    """Initialize a component
 
     :param str name: The name of the component
     :param dict info: Information that describes the component
@@ -190,12 +184,12 @@ class Component(object):
         self.register_dependencies(info)
 
     def register_global(self):
-        """bla bla
+        """Register component to a global dict.
         """
         COMPONENTS[self.id] = self
 
     def register_dependencies(self, info):
-        """Register dependences in local for parents and in global DEPENDENCES
+        """Register dependencies in local for parents and in global DEPENDENCES
         for childs
         """
         global DEPENDENCIES
@@ -210,8 +204,9 @@ class Component(object):
                                                 dep['component'],
                                                 dep['soft']))
             except KeyError as e:
-                raise DepsError(("Missing key {} to define dependencies "
-                                 "for component {}").format(e, self.id))
+                raise DependenceError(("Missing key {} to define dependencies "
+                                       "for component {}").format(e, self.id)
+                                      )
 
             # add child dependences
             parent_id = "{}_{}_{}".format(dep['marque'],
@@ -254,10 +249,9 @@ class Component(object):
 #
 
 def generate_path(path_list):
-    """Generate a path for the current os.
+    """Generate a path for the current os
 
-    :param path_list: path of directories (and optionally file at the end)
-    :type path_list: list
+    :param list path_list: path of directories (and optionally file at the end)
 
     :return: path generated with the os separator
     :rtype: str
@@ -266,10 +260,9 @@ def generate_path(path_list):
 
 
 def load_yaml_file(yaml_file):
-    """Load YAML file in a python structure.
+    """Load YAML file in a python structure
 
-    :param yaml_file: path of the YAML file
-    :type yaml_file: str
+    :param str yaml_file: path of the YAML file
 
     :return: python structure of YAML file
     :rtype: list
@@ -282,7 +275,7 @@ def load_yaml_file(yaml_file):
 
 
 def load_projects():
-    """Load all project YAML files.
+    """Load all project YAML files
     """
 
     global PROJECTS
