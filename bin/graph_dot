@@ -1,38 +1,45 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+#
+#    Application dependencies management (pydeps)
+#
+#    Copyright (C) 2017 Cyrielle Camanes (sylicia) <cyrielle.camanes@gmail.com>
+#
+#    This file is part of pydeps
+#
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU General Public License
+#    as published by the Free Software Foundation; either version 2
+#    of the License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, see <http://www.gnu.org/licenses/>.
+
 """graph_dot
 
-\033[1mUsage:\033[0m
+Usage:
     graph_dot -h | --help
-    graph_dot (-t <project> | --target <project>) [--detailled <value>]
+    graph_dot (-t <project> | --target <project>)
 
-\033[1mOptions:\033[0m
+Options:
     -h, --help                        Show this screen.
     -t <project>, --target <project>  Project you want to focus on
-    --detailled <value>               Generate detailed graph with components
-                                         Values: 'yes' or 'no'
-                                         [Default: yes]
 """
 
 
-from pprint import pprint
-import types
 import logging
 import pydeps
-
-# files functions
-from os import path, sep
-from glob import glob
-
+import os
 from pydeps.exceptions import ArgumentError
-
 from jinja2 import Environment, FileSystemLoader
 
-try:
-    from yaml import load, CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import load, Loader, Dumper
 
 logger = logging.getLogger(__name__)
+
 
 #
 #   Functions
@@ -70,9 +77,9 @@ def generate_dot_graph(project):
     # add hidden links from project configuration
     for parent_id, child_id in project.dot['invis_links'].items():
         dot_graph['links'].append({'parent': parent_id,
-                                 'child': child_id,
-                                 'display': {'style': 'invis'}
-                                })
+                                   'child': child_id,
+                                   'display': {'style': 'invis'}
+                                   })
     # create dot cluster for other projects
     for project_name, compo_list in external_components.items():
         project = pydeps.PROJECTS[project_name]
@@ -94,25 +101,23 @@ def create_dot_file(dot_template, dot_variables):
     """
     dot_file = dot_template.replace('.j2', '')
     with open(dot_file, 'w') as dot:
-        dirname = path.dirname(dot_template)
-        basename = path.basename(dot_template)
-        templateLoader = FileSystemLoader(searchpath=dirname)
-        templateEnv = Environment(loader=templateLoader)
-        dot_content = templateEnv.get_template(basename).render(dot_variables)
+        dir_name = os.path.dirname(dot_template)
+        basename = os.path.basename(dot_template)
+        template_loader = FileSystemLoader(searchpath=dir_name)
+        template_env = Environment(loader=template_loader)
+        dot_content = template_env.get_template(basename).render(dot_variables)
         dot.write(dot_content)
         dot.close()
 
 
-def get_project_cluster(project, components=[]):
+def get_project_cluster(project, components=()):
     """ Get a dot cluster definition for a project
 
     It creates the cluster structure with all applications and components by
     default but you can also specify a component in parameters.
 
-    :param project: Project to look for
-    :param components: Filter on a list specified components
-    :type project: Project
-    :type components: list
+    :param Project project: Project to look for
+    :param list components: Filter on a list specified components
 
     :return: Cluster definition
     :rtype: dict
@@ -139,7 +144,7 @@ def get_project_cluster(project, components=[]):
             cluster['links'].append({'parent': parent_id,
                                      'child': child_id,
                                      'display': {'style': 'invis'}
-                                    })
+                                     })
     else:
         external_components = {}
         for compo in components:
@@ -153,16 +158,15 @@ def get_project_cluster(project, components=[]):
                                             )
     return cluster
 
-def get_appli_cluster(appli, components=[]):
+
+def get_appli_cluster(appli, components=()):
     """ Get a dot cluster definition for an application
 
     It creates the cluster structure with all components by
-    default but you can also specify a component in parameters.
+    default but you can also specify components in parameters.
 
-    :param appli: Application to look for
-    :param components: Filter on a list specified components
-    :type appli: Application
-    :type component: Component
+    :param Application appli: Application to look for
+    :param list components: Get only specified :class:`Component` objects
 
     :return: Cluster definition
     :rtype: dict
@@ -276,13 +280,6 @@ if __name__ == '__main__':
 
     arguments = docopt(__doc__)
     project_target = arguments['--target']
-
-    if arguments['--detailled'] == 'yes':
-        is_detailled = True
-    elif arguments['--detailled'] == 'no':
-        is_detailled = False
-    else:
-        raise ArgumentError('Only "yes" or "no" supported for --macro')
 
     # Load projects configuration
     pydeps.load_projects()

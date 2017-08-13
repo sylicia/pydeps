@@ -1,7 +1,24 @@
-#!/usr/bin/env python
+#
+#    Application dependencies management (pydeps)
+#
+#    Copyright (C) 2017 Cyrielle Camanes (sylicia) <cyrielle.camanes@gmail.com>
+#
+#    This file is part of pydeps
+#
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU General Public License
+#    as published by the Free Software Foundation; either version 2
+#    of the License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from pprint import pprint
-from exceptions import DepsError
+from exceptions import DependenceError, ArgumentError
 import logging
 
 # files functions
@@ -20,16 +37,15 @@ DEPENDENCIES = {}
 
 logger = logging.getLogger(__name__)
 
+
 #
 #   Classes
 #
 class Project(object):
     """Initialize a project.
 
-        :param project_name: The name of the project
-        :param project_info: Information that describes the project
-        :type project_name: str
-        :type project_info: dict
+        :param str name: The name of the project
+        :param dict info: Information that describes the project
     """
     def __init__(self, name, info):
         """Init method"""
@@ -69,19 +85,20 @@ class Project(object):
     def __repr__(self):
         return self.id
 
+    def add_application(self, appli_name, appli_info):
+        """Add a new application in the project
 
-    def add_application(self,appli_name, appli_info):
-        application = Application(appli_name, appli_info,self)
+        :param str appli_name: Application name
+        :param dict appli_info: Application data
+        """
+        application = Application(appli_name, appli_info, self)
         self.applis[appli_name] = application
-
 
     def get_application(self, appli_target):
         """Look for a specific application
 
-        :param appli_target: Application name to look for
-        :type appli_target: str
-        :return: The application object
-        :rtype: Application
+        :param str appli_target: Application name to look for
+        :return: The application data as :class:`Application`
         """
         for appli_name, appli in self.applis.iteritems():
             if appli_name == appli_target:
@@ -107,8 +124,6 @@ class Application(object):
         self.dot = {
             'custom': {}
         }
-
-        #pprint(info)
 
         if 'graph_customization' in info:
             self.dot['custom'] = info['graph_customization']
@@ -136,16 +151,14 @@ class Application(object):
         """
         component = Component(component_name,
                               component_info,
-                              self.project,
                               self)
 
         self.components[component_name] = component
 
-
     def get_component(self, component_target):
         """Look for a specific component
 
-        :param component_target: Componanent name to look for
+        :param component_target: Component name to look for
         :type component_target: str
         :return: The component object
         :rtype: Component
@@ -158,17 +171,12 @@ class Application(object):
 class Component(object):
     """Initialize a component.
 
-    :param name: The name of the component
-    :param info: Information that describes the component
-    :param project: Reference to the parent project
-    :param appli: Reference to the parent application
-    :type name: str
-    :type info: dict
-    :type project: Project
-    :type appli: Application
+    :param str name: The name of the component
+    :param dict info: Information that describes the component
+    :param Application appli: Reference to the parent application
     """
 
-    def __init__(self, name, info, project, appli):
+    def __init__(self, name, info, appli):
         """Init method"""
         self.id = "{}_{}_{}".format(appli.project.name, appli.name, name)
         self.name = name
@@ -186,7 +194,7 @@ class Component(object):
         """
         COMPONENTS[self.id] = self
 
-    def register_dependencies(self,info):
+    def register_dependencies(self, info):
         """Register dependences in local for parents and in global DEPENDENCES
         for childs
         """
@@ -270,7 +278,7 @@ def load_yaml_file(yaml_file):
         yaml_load = load(stream, Loader=Loader)
     stream.close()
 
-    return(yaml_load)
+    return yaml_load
 
 
 def load_projects():
@@ -279,13 +287,13 @@ def load_projects():
 
     global PROJECTS
 
-    #set projects location path
+    # set projects location path
     current_path = path.dirname(path.realpath(__file__))
     project_glob = generate_path([current_path, '..', 'projects', '*'])
     project_dirs = glob(project_glob)
 
     if project_dirs.__len__() == 0:
-        raise "No project directory found"
+        raise ArgumentError("No project directory found")
 
     # setup projects
     for project_dir in project_dirs:
@@ -301,5 +309,5 @@ def load_projects():
         # setup applications
         for appli_file in appli_files:
             appli_info = load_yaml_file(appli_file)
-            appli_name = path.basename(appli_file.replace('.yml',''))
+            appli_name = path.basename(appli_file.replace('.yml', ''))
             PROJECTS[project_name].add_application(appli_name, appli_info)
