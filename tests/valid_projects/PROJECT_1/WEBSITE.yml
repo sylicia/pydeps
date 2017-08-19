@@ -7,6 +7,10 @@ FRONTEND:
       application: WEBSITE
       component: DATABASE
       soft: mariadb
+    - project: PROJECT_1
+      application: WEBSITE
+      component: FRONTEND
+      soft: nginx
 
 BACKEND:
   nginx:

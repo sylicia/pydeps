@@ -1,0 +1,7 @@
+user:
+  owner: me
+  group: adm
+
+graph_hidden_links:
+  PROJECT_2_WEBSITE_v2_BACKEND:
+    - PROJECT_3_API_MEMCACHE
