@@ -1,0 +1,22 @@
+---
+FRONTEND:
+  nginx:
+    vhost: www1
+  dependencies:
+    - project: PROJECT_2
+      application: WEBSITE_v1
+      component: DATABASE
+      soft: mariadb
+
+BACKEND:
+  nginx:
+    vhost: back1
+  dependencies:
+    - project: PROJECT_2
+      application: WEBSITE_v1
+      component: DATABASE
+      soft: mariadb
+
+DATABASE:
+  mariadb:
+    name: test1

@@ -1,0 +1,21 @@
+---
+FRONTEND:
+  nginx:
+    vhost: www
+  dependencies:
+    - project: PROJECT_3
+      application: API
+      component: DATABASE
+      soft: mariadb
+    - project: PROJECT_3
+      application: API
+      component: MEMCACHE
+      soft: memcached
+
+DATABASE:
+  mariadb:
+    name: apidb
+
+MEMCACHE:
+  memcached:
+    memory: 1G

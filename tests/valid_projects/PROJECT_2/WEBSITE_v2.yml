@@ -1,0 +1,30 @@
+---
+FRONTEND:
+  nginx:
+    vhost: www2
+  dependencies:
+  - project: PROJECT_2
+    application: WEBSITE_v2
+    component: ELASTICSEARCH
+    soft: elasticsearch
+
+BACKEND:
+  nginx:
+    vhost: back2
+  dependencies:
+    - project: PROJECT_2
+      application: WEBSITE_v2
+      component: ELASTICSEARCH
+      soft: elasticsearch
+    - project: PROJECT_2
+      application: WEBSITE_v1
+      component: DATABASE
+      soft: mariadb
+    - project: PROJECT_3
+      application: API
+      component: FRONTEND
+      soft: nginx
+
+ELASTICSEARCH:
+  elasticsearch:
+    indice: testindice

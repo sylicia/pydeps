@@ -192,7 +192,7 @@ class Component(object):
         for dep in info['dependencies']:
             # add parent dependencies
             try:
-                self._parent_components.append((dep['marque'],
+                self._parent_components.append((dep['project'],
                                                 dep['application'],
                                                 dep['component'],
                                                 dep['soft']))
@@ -202,7 +202,7 @@ class Component(object):
                                       )
 
             # add child dependences
-            parent_id = "{}_{}_{}".format(dep['marque'],
+            parent_id = "{}_{}_{}".format(dep['project'],
                                           dep['application'],
                                           dep['component'])
 
