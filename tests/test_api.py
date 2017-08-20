@@ -22,7 +22,6 @@
 
 import pydeps
 import pytest
-import pprint
 
 
 def test_load_projects_invalid_path():
@@ -30,10 +29,12 @@ def test_load_projects_invalid_path():
     with pytest.raises(OSError):
         pydeps.load_projects('invalid_path')
 
+
 def test_load_projects_empty_directory():
     """Test loading projects from invalid path"""
     # TODO : add empty directory case
     pass
+
 
 def test_load_projects():
     """Test loading projects"""
@@ -68,10 +69,19 @@ def test_project_applications_list():
     assert sorted(pydeps.PROJECTS['PROJECT_2'].applis.keys()) == expected
 
 
+def test_get_project_application():
+    assert pydeps.PROJECTS['PROJECT_3'].get_application('API').name == 'API'
+
+
 def test_application_components_list():
     expected = ['BACKEND', 'DATABASE', 'FRONTEND']
     application = pydeps.PROJECTS['PROJECT_1'].applis['WEBSITE']
     assert sorted(application.components.keys()) == expected
+
+
+def test_get_application_component():
+    application = pydeps.PROJECTS['PROJECT_3'].applis['API']
+    assert application.get_component('DATABASE').id == 'PROJECT_3_API_DATABASE'
 
 
 def test_project_id():
@@ -91,35 +101,70 @@ def test_project_domain():
     assert pydeps.PROJECTS['PROJECT_1'].domain == ''
     assert pydeps.PROJECTS['PROJECT_2'].domain == 'project2.test'
 
+
 def test_project_user():
     assert pydeps.PROJECTS['PROJECT_1'].user['owner'] == 'www-data'
     assert pydeps.PROJECTS['PROJECT_1'].user['group'] == 'www-data'
     assert pydeps.PROJECTS['PROJECT_3'].user['owner'] == 'me'
     assert pydeps.PROJECTS['PROJECT_3'].user['group'] == 'adm'
 
+
+def test_application_id():
+    application = pydeps.PROJECTS['PROJECT_1'].applis['WEBSITE']
+    assert application.id == 'PROJECT_1_WEBSITE'
+
+
+def test_application_name():
+    application = pydeps.PROJECTS['PROJECT_1'].applis['WEBSITE']
+    assert application.name == 'WEBSITE'
+
+
 def test_graph_project_customization():
-    assert len(pydeps.PROJECTS['PROJECT_1'].dot['custom'].keys()) == 0
-    assert len(pydeps.PROJECTS['PROJECT_1'].dot['invis_links'].keys()) == 0
+    assert not len(pydeps.PROJECTS['PROJECT_1'].dot['custom'].keys())
+    assert not len(pydeps.PROJECTS['PROJECT_1'].dot['invis_links'].keys())
     project = pydeps.PROJECTS['PROJECT_2']
     assert project.dot['custom']['fillcolor'] == 'lightsteelblue1'
     assert project.dot['custom']['color'] == 'royalblue4'
     # TODO : add invis_link configuration
 
 
+def test_graph_application_customization():
+    application = pydeps.PROJECTS['PROJECT_1'].applis['WEBSITE']
+    assert not len(application.dot['custom'].keys())
+
+    application = pydeps.PROJECTS['PROJECT_2'].applis['WEBSITE_v1']
+    assert application.dot['custom']['fillcolor'] == 'lightsteelblue1'
+    assert application.dot['custom']['color'] == 'royalblue4'
+
+    application = pydeps.PROJECTS['PROJECT_2'].applis['WEBSITE_v2']
+    assert application.dot['custom']['fillcolor'] == 'lemonchiffon'
+    assert application.dot['custom']['color'] == 'darkgoldenrod'
+
+
+def test_component_id():
+    application = pydeps.PROJECTS['PROJECT_3'].applis['API']
+    assert application.components['FRONTEND'].id == 'PROJECT_3_API_FRONTEND'
+
+
+def test_component_name():
+    application = pydeps.PROJECTS['PROJECT_3'].applis['API']
+    assert application.components['FRONTEND'].name == 'FRONTEND'
+
+
 def test_component_parents():
-    assert len(pydeps.COMPONENTS['PROJECT_2_WEBSITE_v1_DATABASE'].parents) == 0
+    assert not len(pydeps.COMPONENTS['PROJECT_2_WEBSITE_v1_DATABASE'].parents)
     expected = [
         'PROJECT_2_WEBSITE_v1_DATABASE',
         'PROJECT_2_WEBSITE_v2_ELASTICSEARCH',
         'PROJECT_3_API_FRONTEND'
     ]
     compo = 'PROJECT_2_WEBSITE_v2_BACKEND'
-    result = [ parent.id for parent in pydeps.COMPONENTS[compo].parents]
+    result = [parent.id for parent in pydeps.COMPONENTS[compo].parents]
     assert sorted(result) == expected
 
 
 def test_component_childs():
-    assert len(pydeps.COMPONENTS['PROJECT_2_WEBSITE_v2_BACKEND'].childs) == 0
+    assert not len(pydeps.COMPONENTS['PROJECT_2_WEBSITE_v2_BACKEND'].childs)
     expected = [
         'PROJECT_2_WEBSITE_v1_BACKEND',
         'PROJECT_2_WEBSITE_v1_FRONTEND',
@@ -128,6 +173,3 @@ def test_component_childs():
     compo = 'PROJECT_2_WEBSITE_v1_DATABASE'
     result = [parent.id for parent in pydeps.COMPONENTS[compo].childs]
     assert sorted(result) == expected
-
-
-

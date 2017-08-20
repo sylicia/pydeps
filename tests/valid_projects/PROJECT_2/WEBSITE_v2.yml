@@ -1,4 +1,8 @@
 ---
+graph_customization:
+  fillcolor: lemonchiffon
+  color: darkgoldenrod
+
 FRONTEND:
   nginx:
     vhost: www2
