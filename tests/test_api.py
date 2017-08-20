@@ -26,14 +26,14 @@ import pytest
 
 def test_load_projects_invalid_path():
     """Test loading projects from invalid path"""
-    with pytest.raises(OSError):
+    with pytest.raises(StopIteration):
         pydeps.load_projects('invalid_path')
 
 
 def test_load_projects_empty_directory():
     """Test loading projects from invalid path"""
-    # TODO : add empty directory case
-    pass
+    with pytest.raises(pydeps.ArgumentError):
+        pydeps.load_projects('tests/empty')
 
 
 def test_load_projects():
