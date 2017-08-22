@@ -103,9 +103,12 @@ def create_dot_file(graph_path, dot_variables):
     :param dict dot_variables: Dot object definitions
     """
     current_path = os.path.dirname(os.path.realpath(__file__))
+
     dot_template = pydeps.generate_path([
                                           current_path,
-                                          'dependencies.dot.j2'
+                                          '..',
+                                          'data',
+                                          'graph_dot.j2'
                                         ])
     dir_name = os.path.dirname(dot_template)
     basename = os.path.basename(dot_template)
