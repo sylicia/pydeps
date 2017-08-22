@@ -2,13 +2,9 @@ from setuptools import setup
 import os
 
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-
 # Get the long description from the README file
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme_file:
     long_description = readme_file.read()
-
 
 setup(
     name='pydeps',
@@ -53,7 +49,7 @@ setup(
     },
     scripts=['scripts/graph_dot'],
     data_files=[
-        ('data/pydeps', ['data/graph_dot.j2']),
+        ('data/pydeps', ['data/pydeps/graph_dot.j2']),
         ('share/doc/pydeps/examples', [
             'share/doc/examples/PROJECT/defaults.yml',
             'share/doc/examples/PROJECT/APPLICATION1.yml',
