@@ -6,7 +6,7 @@ Manage dependencies between applications
 
 .. |PythonSupport| image:: https://img.shields.io/badge/python-2.7-blue.svg
 .. _PythonSupport: https://github.com/sylicia/pydeps
-.. |License| image:: https://img.shields.io/badge/license-GPLv2-green.svg
+.. |License| image:: https://img.shields.io/badge/license-GPLv3-blue.svg
 .. _License: https://github.com/sylicia/pydeps
 .. |Codacy| image:: https://api.codacy.com/project/badge/Grade/9a1a5252864e4b1a9d3ef7fa6c7eb953
 .. _Codacy: https://www.codacy.com/app/sylicia/pydeps
