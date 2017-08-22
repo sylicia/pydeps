@@ -1,0 +1,26 @@
+---
+graph_customization:
+  fillcolor: lemonchiffon
+  color: darkgoldenrod
+
+FRONTEND:
+  nginx:
+    vhost: www
+  dependencies:
+    - project: PROJECT
+      application: APPLICATION1
+      component: DATABASE
+      soft: mariadb
+
+BACKEND:
+  nginx:
+    vhost: back
+  dependencies:
+    - project: PROJECT
+      application: APPLICATION1
+      component: DATABASE
+      soft: mariadb
+
+DATABASE:
+  mariadb:
+    name: test

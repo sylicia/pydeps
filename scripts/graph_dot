@@ -108,6 +108,7 @@ def create_dot_file(graph_path, dot_variables):
                                           current_path,
                                           '..',
                                           'data',
+                                          'pydeps',
                                           'graph_dot.j2'
                                         ])
     dir_name = os.path.dirname(dot_template)

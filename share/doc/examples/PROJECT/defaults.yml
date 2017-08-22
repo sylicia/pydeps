@@ -1,0 +1,7 @@
+---
+team: admin
+domain: project.test
+
+graph_customization:
+  fillcolor: lightsteelblue1
+  color: royalblue4
