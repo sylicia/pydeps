@@ -18,14 +18,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from exceptions import DependencyError, ArgumentError
+
 import logging
-
-# files functions
 import os
-from pprint import pprint
-
-from yaml import safe_load
+import yaml
+from exceptions import DependencyError, ArgumentError
 
 
 PROJECTS = {}
@@ -103,9 +100,7 @@ class Application(object):
         self.name = name
         self.project = project
         self.components = {}
-        self.dot = {
-            'custom': {}
-        }
+        self.dot = {}
 
         # Get 'graph_customization' or fallback project custom
         self.dot['custom'] = info.get('graph_customization',
@@ -182,7 +177,6 @@ class Component(object):
         for dep in info['dependencies']:
             # add parent dependencies
             try:
-                pprint(dep)
                 self._parent_components.append((dep['component'],
                                                 dep['service']))
             except KeyError as e:
@@ -248,25 +242,27 @@ def load_yaml_file(yaml_file):
     :rtype: list
     """
     with file(yaml_file, 'r') as stream:
-        yaml_load = safe_load(stream)
+        yaml_load = yaml.safe_load(stream)
     stream.close()
 
     return yaml_load
 
-def is_yaml_file(file):
+
+def is_yaml_file(yaml_file):
     """Test if it is a YAML file
 
-    :param str file: File to validate. It can be a path or a filename
+    :param str yaml_file: File to validate. It can be a path or a filename
 
     :return: True if it is a YAML file
     :rtype: boolean
     """
-    if not os.path.isfile(file):
+    if not os.path.isfile(yaml_file):
         return False
-    if not file.endswith('.yml') and not file.endswith('.yaml'):
+    if not yaml_file.endswith('.yml') and not yaml_file.endswith('.yaml'):
         return False
 
     return True
+
 
 def load_projects(projects_path):
     """Load all project YAML files
