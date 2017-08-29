@@ -7,23 +7,17 @@ FRONTEND:
   nginx:
     vhost: www
   dependencies:
-    - project: PROJECT
-      application: APPLICATION2
-      component: DATABASE
-      soft: mariadb
-    - project: PROJECT
-      application: APPLICATION1
-      component: FRONTEND
-      soft: nginx
+    - component: PROJECT.APPLICATION2.DATABASE
+      service: mariadb
+    - component: PROJECT.APPLICATION1.DATABASE
+      service: mariadb
 
 BACKEND:
   nginx:
     vhost: back
   dependencies:
-    - project: PROJECT
-      application: APPLICATION2
-      component: DATABASE
-      soft: mariadb
+    - component: PROJECT.APPLICATION2.DATABASE
+      service: mariadb
 
 DATABASE:
   mariadb:

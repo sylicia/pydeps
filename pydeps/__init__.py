@@ -185,24 +185,18 @@ class Component(object):
         for dep in info['dependencies']:
             # add parent dependencies
             try:
-                self._parent_components.append((dep['project'],
-                                                dep['application'],
-                                                dep['component'],
-                                                dep['soft']))
+                pprint(dep)
+                self._parent_components.append((dep['component'],
+                                                dep['service']))
             except KeyError as e:
                 raise DependencyError(("Missing key {} to define dependencies "
                                        "for component {}").format(e, self.id)
                                       )
 
-            # add child dependences
-            parent_id = "{}.{}.{}".format(dep['project'],
-                                          dep['application'],
-                                          dep['component'])
+            if dep['component'] not in DEPENDENCIES:
+                DEPENDENCIES[dep['component']] = []
 
-            if parent_id not in DEPENDENCIES:
-                DEPENDENCIES[parent_id] = []
-
-            DEPENDENCIES[parent_id].append(self)
+            DEPENDENCIES[dep['component']].append(self)
 
     def __repr__(self):
         return self.id
@@ -216,12 +210,11 @@ class Component(object):
         """
         comp_list = []
         for comp in self._parent_components:
-            comp_id = "{}.{}.{}".format(comp[0], comp[1], comp[2])
             try:
-                comp_list.append(COMPONENTS[comp_id])
+                comp_list.append(COMPONENTS[comp[0]])
             except KeyError:
                 raise DependencyError(('{} not found to resolve '
-                                      '{} dependency').format(comp_id, self.id))
+                                      '{} dependency').format(comp[0], self.id))
         return comp_list
 
     @property

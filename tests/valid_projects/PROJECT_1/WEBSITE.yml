@@ -3,23 +3,17 @@ FRONTEND:
   nginx:
     vhost: www.project1.test
   dependencies:
-    - project: PROJECT_1
-      application: WEBSITE
-      component: DATABASE
-      soft: mariadb
-    - project: PROJECT_1
-      application: WEBSITE
-      component: FRONTEND
-      soft: nginx
+    - component: PROJECT_1.WEBSITE.DATABASE
+      service: mariadb
+    - component: PROJECT_1.WEBSITE.FRONTEND
+      service: nginx
 
 BACKEND:
   nginx:
     vhost: back.project1.test
   dependencies:
-    - project: PROJECT_1
-      application: WEBSITE
-      component: DATABASE
-      soft: mariadb
+    - component: PROJECT_1.WEBSITE.DATABASE
+      service: mariadb
 
 DATABASE:
   mariadb:

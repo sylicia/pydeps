@@ -3,15 +3,14 @@ FRONTEND:
   nginx:
     vhost: www1
   dependencies:
-    - component: PROJECT_2.WEBSITE_v1.DATABASE
+    - component: PROJECT.APPLI.DATABASE
       service: mariadb
 
 BACKEND:
   nginx:
     vhost: back1
   dependencies:
-    - component: PROJECT_2.WEBSITE_v1.DATABASE
-      service: mariadb
+    - component: PROJECT.APPLI.DATABASE
 
 DATABASE:
   mariadb:
