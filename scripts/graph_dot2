@@ -51,7 +51,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     project_target = arguments['--target']
     projects_path = arguments['--path']
-    dot_path = arguments['--output']
+    output = arguments['--output']
 
     # Load projects configuration
     try:
@@ -65,4 +65,4 @@ if __name__ == '__main__':
         logger.critical("Project {0} not found".format(project_target))
         exit(1)
 
-    dot.generate_detailed_graph(project_target)
+    dot.generate_detailed_graph(project_target,output)

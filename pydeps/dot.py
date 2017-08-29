@@ -45,15 +45,15 @@ class Graph(object):
 
 
     @property
-    def struct(self):
-        graph_def = {
+    def definition(self):
+        definition = {
             'title': self.title,
             'clusters': {}
         }
         for c_name, c_info in self.clusters.items():
-            graph_def['clusters'] = c_info.struct
+            definition['clusters'] = c_info.definition
 
-        return graph_def
+        return definition
 
     def write_dot_file(self, dot_path):
         pass
@@ -73,7 +73,7 @@ class Cluster(object):
                 for appli in obj.applis.values():
                     self.clusters[appli.id] = Cluster(appli)
                     for compo in appli.components.values():
-                        self.add_node(compo)
+                        self.clusters[appli.id].add_node(compo)
             else:
                 external_components = {}
                 for compo in components:
@@ -82,21 +82,28 @@ class Cluster(object):
                     external_components[compo.appli.name].append(compo)
                 for compo_list in external_components.values():
                     for compo in compo_list:
-                        self.add_node(compo)
+                        self.clusters[appli.id].add_node(compo).add_node(compo)
         except:
             pass
-
-    def add_project_cluster(self):
-        pass
 
     def add_node(self, obj):
         self.nodes[obj.id] = Node(obj)
 
     @property
-    def struct(self):
-        return {
-            'label': self.label
+    def definition(self):
+        definition = {
+            'label': self.label,
+            'id': self.id,
+            'clusters': [],
+            'nodes': []
         }
+        for cluster in self.clusters.values():
+            definition['clusters'].append(cluster.definition)
+
+        for node in self.nodes.values():
+
+            definition['nodes'].append(node.definition)
+        return definition
 
 
 class Node(object):
@@ -104,15 +111,21 @@ class Node(object):
         self.source_ref = obj
         self.label = obj.name
         self.id = obj.id
-        self.shape = ''
+        self.shape = 'elipse'
         self.style = 'filled'
 
     @property
-    def struct(self):
-        pass
+    def definition(self):
+        definition = {
+            'label': self.label,
+            'id': self.id,
+            'shape': self.shape,
+            'style': self.style
+        }
+        return definition
 
 
 def generate_detailed_graph(project_id, output):
     graph = Graph('Detailed dependencies for {}'.format(project_id), output)
     graph.add_project_cluster(project_id)
-    pprint(graph.struct)
+    pprint(graph.definition)
