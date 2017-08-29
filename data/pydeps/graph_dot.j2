@@ -2,7 +2,7 @@ digraph G {
     rankdir="LR"
 
 {%- for marque, marque_info in clusters.iteritems() %}
-    subgraph cluster_{{ marque }} {
+    subgraph "cluster_{{ marque }}" {
         style=filled;
         label="{{ marque }}";
 
@@ -11,14 +11,14 @@ digraph G {
 {%- endfor %}
 
 {%- for appli, appli_info in marque_info.clusters.iteritems() %}
-        subgraph cluster_{{ appli }} {
+        subgraph "cluster_{{ appli }}" {
             style=filled;
 {%- for display_key in appli_info.display %}
             {{ display_key }}="{{ appli_info.display[display_key] }}"
 {%- endfor %}
             label="{{ appli_info.label }}";
 {%- for component, component_info in appli_info.nodes.iteritems() %}
-            {{ component_info.id }} [
+            "{{ component_info.id }}" [
                 label="{{ component_info.label }}"
                 shape="{{ component_info.shape }}"
                 style="{{ component_info.style }}"
@@ -30,7 +30,7 @@ digraph G {
         }
 {%- endfor %}
 {%- for link in marque_info.links %}
-        {{ link.child }} -> {{ link.parent }} [
+        "{{ link.child }}" -> "{{ link.parent }}" [
             dir=forward
 {%- for key, value in link.display.iteritems() %}
         {{ key }}="{{ value }}"
@@ -41,7 +41,7 @@ digraph G {
 {% endfor %}
 
 {%- for link in links %}
-    {{ link.child }} -> {{ link.parent }} [
+    "{{ link.child }}" -> "{{ link.parent }}" [
         dir=back
 {%- for key, value in link.display.iteritems() %}
         {{ key }}="{{ value }}"

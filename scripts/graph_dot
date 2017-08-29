@@ -79,12 +79,6 @@ def generate_dot_graph(project, graph_path):
                 external_components[ext_compo.appli.project.name].append(
                                                                     ext_compo
                                                                   )
-    # add hidden links from project configuration
-    for parent_id, child_id in project.dot['invis_links'].items():
-        dot_graph['links'].append({'parent': parent_id,
-                                   'child': child_id,
-                                   'display': {'style': 'invis'}
-                                   })
     # create dot cluster for other projects
     for project_name, compo_list in external_components.items():
         project = pydeps.PROJECTS[project_name]
@@ -154,12 +148,6 @@ def get_project_cluster(project, components=()):
     if len(components) == 0:
         for appli_name, appli in project.applis.iteritems():
             cluster['clusters'][appli.id] = get_appli_cluster(appli)
-
-        for parent_id, child_id in project.dot['invis_links'].iteritems():
-            cluster['links'].append({'parent': parent_id,
-                                     'child': child_id,
-                                     'display': {'style': 'invis'}
-                                     })
     else:
         external_components = {}
         for compo in components:

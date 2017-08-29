@@ -55,8 +55,7 @@ class Project(object):
         self.domain = ''
         self.team = ''
         self.dot = {
-            'custom': {},
-            'invis_links': {}
+            'custom': {}
         }
         self.user = {
             'owner': 'www-data',
@@ -67,11 +66,6 @@ class Project(object):
             self.domain = info.get('domain', '')
             self.team = info.get('team', '')
             self.dot['custom'] = info.get('graph_customization', {})
-
-            if 'graph_hidden_links' in info:
-                for parent, childs in info['graph_hidden_links'].iteritems():
-                    for child in childs:
-                        self.dot['invis_links'][parent] = child
 
             if 'user' in info:
                 self.user = info['user']
@@ -123,8 +117,7 @@ class Application(object):
         for component_name, component_info in info.iteritems():
             if isinstance(component_info, dict) and \
               component_name not in ['user',
-                                     'graph_customization',
-                                     'graph_hidden_links']:
+                                     'graph_customization']:
                 self.add_component(component_name, component_info)
 
     def __repr__(self):
