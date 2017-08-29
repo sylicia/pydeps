@@ -108,7 +108,7 @@ class Application(object):
     """
     def __init__(self, name, info, project):
         """Init method"""
-        self.id = "{}_{}".format(project.name, name)
+        self.id = "{}.{}".format(project.name, name)
         self.name = name
         self.project = project
         self.components = {}
@@ -165,7 +165,7 @@ class Component(object):
 
     def __init__(self, name, info, appli):
         """Init method"""
-        self.id = "{}_{}_{}".format(appli.project.name, appli.name, name)
+        self.id = "{}.{}.{}".format(appli.project.name, appli.name, name)
         self.name = name
         self.appli = appli
         self._parent_components = []
@@ -202,7 +202,7 @@ class Component(object):
                                       )
 
             # add child dependences
-            parent_id = "{}_{}_{}".format(dep['project'],
+            parent_id = "{}.{}.{}".format(dep['project'],
                                           dep['application'],
                                           dep['component'])
 
@@ -223,7 +223,7 @@ class Component(object):
         """
         comp_list = []
         for comp in self._parent_components:
-            comp_id = "{}_{}_{}".format(comp[0], comp[1], comp[2])
+            comp_id = "{}.{}.{}".format(comp[0], comp[1], comp[2])
             try:
                 comp_list.append(COMPONENTS[comp_id])
             except KeyError:
