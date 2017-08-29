@@ -3,14 +3,10 @@ FRONTEND:
   nginx:
     vhost: www
   dependencies:
-    - project: PROJECT_3
-      application: API
-      component: DATABASE
-      soft: mariadb
-    - project: PROJECT_3
-      application: API
-      component: MEMCACHE
-      soft: memcached
+    - component: PROJECT_3.API.DATABASE
+      service: mariadb
+    - component: PROJECT_3.API.MEMCACHE
+      service: memcached
 
 DATABASE:
   mariadb:

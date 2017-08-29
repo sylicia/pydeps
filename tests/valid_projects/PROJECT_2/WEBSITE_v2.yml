@@ -7,27 +7,19 @@ FRONTEND:
   nginx:
     vhost: www2
   dependencies:
-  - project: PROJECT_2
-    application: WEBSITE_v2
-    component: ELASTICSEARCH
-    soft: elasticsearch
+    - component: PROJECT_2.WEBSITE_v2.ELASTICSEARCH
+      service: elasticsearch
 
 BACKEND:
   nginx:
     vhost: back2
   dependencies:
-    - project: PROJECT_2
-      application: WEBSITE_v2
-      component: ELASTICSEARCH
-      soft: elasticsearch
-    - project: PROJECT_2
-      application: WEBSITE_v1
-      component: DATABASE
-      soft: mariadb
-    - project: PROJECT_3
-      application: API
-      component: FRONTEND
-      soft: nginx
+    - component: PROJECT_2.WEBSITE_v2.ELASTICSEARCH
+      service: elasticsearch
+    - component: PROJECT_2.WEBSITE_v1.DATABASE
+      service: mariadb
+    - component: PROJECT_3.API.FRONTEND
+      service: nginx
 
 ELASTICSEARCH:
   elasticsearch:
