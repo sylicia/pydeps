@@ -25,10 +25,7 @@ import logging
 import os
 from pprint import pprint
 
-try:
-    from yaml import load, CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import load, Loader, Dumper
+from yaml import safe_load
 
 
 PROJECTS = {}
@@ -251,7 +248,7 @@ def load_yaml_file(yaml_file):
     :rtype: list
     """
     with file(yaml_file, 'r') as stream:
-        yaml_load = load(stream, Loader=Loader)
+        yaml_load = safe_load(stream)
     stream.close()
 
     return yaml_load
