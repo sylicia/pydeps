@@ -1,0 +1,7 @@
+---
+COMPO:
+  nginx:
+    vhost: www
+  dependencies:
+    - component: PROJECT.APPLI.DATABASE
+      service: mariadb

@@ -171,3 +171,12 @@ def test_component_childs():
     compo = 'PROJECT_2.WEBSITE_v1.DATABASE'
     result = [parent.id for parent in pydeps.COMPONENTS[compo].childs]
     assert sorted(result) == expected
+
+def test_invalid_dependence_component():
+    pydeps.load_projects('tests/invalid_projects/1')
+    with pytest.raises(pydeps.DependencyError):
+        pydeps.COMPONENTS['PROJECT.APPLI.COMPO'].parents
+
+def test_missing_dependence_service():
+    with pytest.raises(pydeps.DependencyError):
+        pydeps.load_projects('tests/invalid_projects/2')
