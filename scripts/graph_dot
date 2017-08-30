@@ -265,7 +265,7 @@ def get_component_links(compo):
                 'display': compo.appli.dot['custom']
             })
             links['external_components'].append(parent)
-    for child in set(compo.childs):
+    for child in set(compo.children):
         if child.appli.project.name != compo.appli.project.name:
             links['external'].append({
                 'child': compo.id,

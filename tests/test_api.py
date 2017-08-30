@@ -161,15 +161,15 @@ def test_component_parents():
     assert sorted(result) == expected
 
 
-def test_component_childs():
-    assert not len(pydeps.COMPONENTS['PROJECT_2.WEBSITE_v2.BACKEND'].childs)
+def test_component_children():
+    assert not len(pydeps.COMPONENTS['PROJECT_2.WEBSITE_v2.BACKEND'].children)
     expected = [
         'PROJECT_2.WEBSITE_v1.BACKEND',
         'PROJECT_2.WEBSITE_v1.FRONTEND',
         'PROJECT_2.WEBSITE_v2.BACKEND'
     ]
     compo = 'PROJECT_2.WEBSITE_v1.DATABASE'
-    result = [parent.id for parent in pydeps.COMPONENTS[compo].childs]
+    result = [parent.id for parent in pydeps.COMPONENTS[compo].children]
     assert sorted(result) == expected
 
 def test_invalid_dependence_component():

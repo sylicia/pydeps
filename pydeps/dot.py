@@ -36,13 +36,22 @@ class Graph(object):
         It creates the cluster structure with all applications and components by
         default but you can also specify a component in parameters.
 
-        :param Project project: Project to look for
+        :param str project_id: Project to look for
         :param list components: Filter on a list specified components
         """
         project = pydeps.PROJECTS[project_id]
         self.clusters[project_id] = Cluster(project, components)
 
-
+    def resolve_project_links(self, project_id):
+        pprint(pydeps.COMPONENTS)
+        compo_deps = self.clusters[project_id].dependencies
+        for parent_dep in compo_deps['parents']:
+            pprint(parent_dep)
+            for parent in parent_dep['components']:
+                if parent.id.startswith('{}.'.format(project_id)):
+                    print('in project')
+                else:
+                    print('global')
 
     @property
     def definition(self):
@@ -82,12 +91,21 @@ class Cluster(object):
                     external_components[compo.appli.name].append(compo)
                 for compo_list in external_components.values():
                     for compo in compo_list:
-                        self.clusters[appli.id].add_node(compo).add_node(compo)
-        except:
+                        self.clusters[compo.appli.id].add_node(compo).add_node(
+                            compo
+                        )
+        except AttributeError:
             pass
 
     def add_node(self, obj):
         self.nodes[obj.id] = Node(obj)
+
+    @property
+    def dependencies(self):
+        return {
+            'parents': self.source_ref.parents,
+            'children': self.source_ref.children
+        }
 
     @property
     def definition(self):
@@ -128,4 +146,5 @@ class Node(object):
 def generate_detailed_graph(project_id, output):
     graph = Graph('Detailed dependencies for {}'.format(project_id), output)
     graph.add_project_cluster(project_id)
+    graph.resolve_project_links(project_id)
     pprint(graph.definition)

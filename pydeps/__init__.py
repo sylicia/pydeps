@@ -23,6 +23,7 @@ import logging
 import os
 import yaml
 from exceptions import DependencyError, ArgumentError
+from pprint import pprint
 
 
 PROJECTS = {}
@@ -86,6 +87,34 @@ class Project(object):
             if appli_name == appli_target:
                 return appli
 
+    @property
+    def parents(self):
+        """Get parent components
+
+        :return: List of components it depends on
+        :rtype: list
+        """
+        compo_list = []
+        for appli in self.applis.values():
+            if not len(appli.parents):
+                continue
+            compo_list = compo_list + appli.parents
+        return compo_list
+
+    @property
+    def children(self):
+        """Get parent components
+
+        :return: List of components it depends on
+        :rtype: list
+        """
+        compo_list = []
+        for appli in self.applis.values():
+            if not len(appli.children):
+                continue
+            compo_list = compo_list + appli.children
+        return compo_list
+
 
 class Application(object):
     """Initialize an application
@@ -139,6 +168,35 @@ class Application(object):
             if component_name == component_target:
                 return component
 
+    @property
+    def parents(self):
+        """Get parent components
+
+        :return: List of components it depends on
+        :rtype: list
+        """
+        compo_list = []
+        for compo in self.components.values():
+            if not len(compo.parents):
+                continue
+            compo_list.append({'id': compo.id, 'components': compo.parents})
+        pprint(compo_list)
+        return compo_list
+
+    @property
+    def children(self):
+        """Get parent components
+
+        :return: List of components it depends on
+        :rtype: list
+        """
+        compo_list = []
+        for compo in self.components.values():
+            if not len(compo.children):
+                continue
+            compo_list.append({'id': compo.id, 'components': compo.children})
+        return compo_list
+
 
 class Component(object):
     """Initialize a component
@@ -168,7 +226,7 @@ class Component(object):
 
     def register_dependencies(self, info):
         """Register dependencies in local for parents and in global DEPENDENCES
-        for childs
+        for children
         """
         global DEPENDENCIES
         if 'dependencies' not in info:
@@ -209,7 +267,7 @@ class Component(object):
         return comp_list
 
     @property
-    def childs(self):
+    def children(self):
         """Get child components
 
         :return: List of components depending on it
