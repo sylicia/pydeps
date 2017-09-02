@@ -1,0 +1,19 @@
+---
+default:
+  dns:
+    required: True
+  port:
+    required: True
+
+mariadb:
+  dns:
+    required: True
+  port:
+    required: True
+  user:
+    required: True
+  database:
+    required: True
+  password:
+    required: Optional
+...

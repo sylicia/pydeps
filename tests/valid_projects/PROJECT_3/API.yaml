@@ -1,7 +1,8 @@
 ---
 FRONTEND:
-  nginx:
-    vhost: www
+  services:
+    nginx:
+      vhost: www
   dependencies:
     - component: PROJECT_3.API.DATABASE
       service: mariadb
@@ -9,9 +10,11 @@ FRONTEND:
       service: memcached
 
 DATABASE:
-  mariadb:
-    name: apidb
+  services:
+    mariadb:
+      name: apidb
 
 MEMCACHE:
-  memcached:
-    memory: 1G
+  services:
+    memcached:
+      memory: 1G
