@@ -23,11 +23,13 @@ import logging
 import os
 import yaml
 from exceptions import DependencyError, ArgumentError
+from pprint import pprint
 
 
 PROJECTS = {}
 COMPONENTS = {}
 DEPENDENCIES = {}
+SERVICES = {}
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,7 @@ class Project(object):
         self.applis = {}
         self.domain = ''
         self.team = ''
+        self.parents_resolved = {}
         self.dot = {
             'custom': {}
         }
@@ -160,6 +163,7 @@ class Component(object):
 
         self.register_global()
         self.register_dependencies(info)
+        self.services = info.get('services', {})
 
     def register_global(self):
         """Register component to a global dict.
@@ -194,7 +198,7 @@ class Component(object):
 
     @property
     def parents(self):
-        """Get parent components
+        """Get parent components summary
 
         :return: List of components it depends on
         :rtype: list
@@ -206,6 +210,29 @@ class Component(object):
             except KeyError:
                 raise DependencyError(('{} not found to resolve '
                                       '{} dependency').format(comp[0], self.id))
+        return comp_list
+
+    @property
+    def parents_full(self):
+        """Get parent components with all information
+
+        :return: List of components it depends on
+        :rtype: list
+        """
+        comp_list = []
+        for comp in self._parent_components:
+            try:
+                parent = get_component(comp[0])
+            except KeyError:
+                raise DependencyError(('{} not found to resolve '
+                                      '{} dependency').format(comp[0], self.id))
+            if comp[1] not in parent.services:
+                raise DependencyError(('Service {} not configured in {} '
+                                      'to satisfy {} dependency').format(
+                                                                    comp[1],
+                                                                    comp[0],
+                                                                    self.id))
+            comp_list.append((parent, comp[1]))
         return comp_list
 
     @property
@@ -275,7 +302,10 @@ def load_projects(projects_path):
     global PROJECTS
 
     # Get the base path to check for subdirectories presence
-    projects_dir = os.walk(projects_path).next()
+    try:
+        projects_dir = os.walk(projects_path).next()
+    except StopIteration:
+        raise ArgumentError("Projects path not found")
 
     if not len(projects_dir[1]):
         raise ArgumentError("No project directory found")
@@ -306,3 +336,35 @@ def load_projects(projects_path):
             appli_info = load_yaml_file(appli_path)
             appli_name = appli_file.split('.')[0]
             PROJECTS[project_name].add_application(appli_name, appli_info)
+
+
+def load_services():
+    """Load supported parameters for each service
+
+    Use global SERVICES
+    """
+    global SERVICES
+
+    current_path = os.path.dirname(os.path.realpath(__file__))
+
+    services_conf = generate_path([
+                                          current_path,
+                                          '..',
+                                          'data',
+                                          'pydeps',
+                                          'services'
+                                        ])
+    SERVICES = load_yaml_file(services_conf)
+
+
+def get_component(compo_id):
+    """Get component from its identifier
+
+    :param str compo_id: Component identifier
+    :return Component compo: Component object
+    """
+    try:
+        compo = COMPONENTS[compo_id]
+    except KeyError:
+        raise KeyError("Component {} not found".format(compo_id))
+    return compo

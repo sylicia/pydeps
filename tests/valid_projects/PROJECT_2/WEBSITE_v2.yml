@@ -4,15 +4,17 @@ graph_customization:
   color: darkgoldenrod
 
 FRONTEND:
-  nginx:
-    vhost: www2
+  services:
+    nginx:
+      vhost: www2
   dependencies:
     - component: PROJECT_2.WEBSITE_v2.ELASTICSEARCH
       service: elasticsearch
 
 BACKEND:
-  nginx:
-    vhost: back2
+  services:
+    nginx:
+      vhost: back2
   dependencies:
     - component: PROJECT_2.WEBSITE_v2.ELASTICSEARCH
       service: elasticsearch
