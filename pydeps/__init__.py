@@ -304,7 +304,7 @@ def load_projects(projects_path):
     # Get the base path to check for subdirectories presence
     try:
         projects_dir = os.walk(projects_path).next()
-    except StopIteration as error:
+    except StopIteration:
         raise ArgumentError("Projects path not found")
 
     if not len(projects_dir[1]):
